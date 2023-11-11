@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"name": "rsconnect-jupyter",
+			"path": "../../../rsconnect-jupyter"
+		},
+		{
+			"path": "../../../EMAE360"
+		}
+	]
+}

@@ -1,0 +1,10 @@
+problem hp
+   p(psi) = 1000.00000
+   %f = 14.00000
+react  
+   fuel=C7H16,n-heptane wt=13.00000  t,k=350.00000 
+   fuel=C8H18,isooctane wt=87.00000  t,k=350.00000 
+   ox=Air wt=100.00000  t,k=320.00000 
+output trans
+   plot p t h mw cp gammas phi rho son cond pran
+end

@@ -1,0 +1,13 @@
+*.inp
+*.out
+*.plt
+*.rtf
+*.pyc
+!thermo_spg.inp
+!thermo_spg.out
+CEA_Wrap.egg-info/
+.idea/
+cea2.f
+cea.inc
+/writeElem.py
+*.bat

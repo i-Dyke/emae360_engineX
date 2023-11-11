@@ -1,0 +1,10 @@
+problem uv
+   rho(kg) = 11.73100
+   o/f = 13.00000
+react  
+   fuel=C7H16,n-heptane wt=13.00000  t,k=300.00000 
+   fuel=C8H18,isooctane wt=87.00000  t,k=300.00000 
+   ox=Air wt=100.00000  t,k=300.00000 
+output massf trans
+   plot p t rho h u g s m mw cp gammas phi rho son cond pran
+end
