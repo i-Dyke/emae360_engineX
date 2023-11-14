@@ -244,8 +244,8 @@ TC = 0;
 BC = 180;
 
 % Valve Timings (Crank Angles, -360 to 360)
-dwell_in = 10;
-dwell_ex = 10;
+dwell_in = 0;
+dwell_ex = 0;
 
 IVO = TC-19;
 IVC = BC+45;
@@ -264,9 +264,6 @@ L_ex_max = L_in_max*0.85;   % Exhaust max valve lift
 
 the = a_step:a_step:the_L_max_in;
 S_in = L_in_max*(64*(the./the_L_max_in).^3 - 192*(the./the_L_max_in).^4 + 192*(the./the_L_max_in).^5 - 64*(the./the_L_max_in).^6);
-
-figure(4)
-plot(the, S_in)
 
 the = a_step:a_step:the_L_max_ex;
 S_ex = L_ex_max*(64*(the./the_L_max_ex).^3 - 192*(the./the_L_max_ex).^4 + 192*(the./the_L_max_ex).^5 - 64*(the./the_L_max_ex).^6);
@@ -287,6 +284,14 @@ the = linspace(-360, 360, length(S_in));
 % L_ex = @(phi) L_ex_helper(phi, L_ex_max, phi_L_max, i_phi_L_max);
 a_L_in = S_in;
 a_L_ex = S_ex;
+
+figure(4)
+plot(the, a_L_in*1000, the, a_L_ex*1000)
+title("Valve Lift vs. Crank Angle")
+xlabel("Crank Angle (deg)")
+ylabel("Valve Lift (mm)")
+xlim tight
+legend("Intake", "Exhaust")
 
 % a_L_in = [a_L_in(1:i_phi_L_max), L_in_max*ones(1, i_dwell), a_L_in(i_phi_L_max:end)];
 % a_L_ex = [a_L_ex(1:i_phi_L_max), L_ex_max*ones(1, i_dwell), a_L_ex(i_phi_L_max:end)];
@@ -389,7 +394,7 @@ else
 end
 xlabel("Crank Angle (deg)")
 ylabel("Mass Flow Rate (kg/s)")
-xlim([-360 360])
+xlim tight
 xline(phi_in_1(1))
 xline(phi_in_1(end))
 xline(phi_in_2(1)) 
@@ -416,60 +421,97 @@ else
 end
 xlabel("Crank Angle (deg)")
 ylabel("Mass Flow Rate (kg/s)")
-xlim([-360 360])
+xlim tight
 xline(phi_ex_1(1))
 xline(phi_ex_1(end))
 xline(phi_ex_2(1)) 
 xline(phi_ex_2(end))
 
+% Intake SVAJ
 V = diff(a_L_in*1000)/a_step * rpm * 360/60;
 A = diff(V)/a_step;
 J = diff(A)/a_step;
 
 figure(8)
 subplot(2, 2, 1)
+sgtitle('Intake SVAJ Curves') 
 plot(the, a_L_in*1000)
-title("S vs. Crank Angle | Max S = " + max(a_L_in*1000) + " mm")
+title("S vs. Crank Angle", "Max S = " + max(a_L_in*1000) + " mm")
 xlabel("Crank Angle (deg)")
 ylabel("S (mm)")
-xlim([-360 360])
+xlim tight
+ylim padded
 
 subplot(2, 2, 2)
 plot(the(1:length(V)), V)
-title("V vs. Crank Angle | Max V = " + max(V) + " mm/s")
+title("V vs. Crank Angle"," Max V = " + max(V) + " mm/s")
 xlabel("Crank Angle (deg)")
 ylabel("V (mm/s)")
-xlim([-360 360])
+xlim tight
+ylim padded
 
 subplot(2, 2, 3)
 plot(the(1:length(A)), A)
-title("A vs. Crank Angle | Max A = " + max(A) + " mm/s^2")
+title("A vs. Crank Angle", "Max A = " + max(A) + " mm/s^2")
 xlabel("Crank Angle (deg)")
 ylabel("A (mm/s^2)")
-xlim([-360 360])
+xlim tight
+ylim padded
 
 subplot(2,2,4)
 plot(the(1:length(J)), J)
-title("J vs. Crank Angle | Max J = " + max(J) + " mm/s^3")
+title("J vs. Crank Angle", "Max J = " + max(J) + " mm/s^3")
 xlabel("Crank Angle (deg)")
 ylabel("J (mm/s^3)")
-xlim([-360 360])
+xlim tight
+ylim padded
 
-figure(4)
-plot(the, a_L_in*1000, the, a_L_ex*1000)
-title("Valve Lift vs. Crank Angle")
-xlabel("Crank Angle (deg)")
-ylabel("Valve Lift (mm)")
-xlim([-360 360])
-legend("Intake", "Exhaust")
+% Exhuast SVAJ
+V = diff(a_L_ex*1000)/a_step * rpm * 360/60;
+A = diff(V)/a_step;
+J = diff(A)/a_step;
 
 figure(9)
+subplot(2, 2, 1)
+sgtitle('Exhaust SVAJ Curves') 
+plot(the, a_L_ex*1000)
+title("S vs. Crank Angle", "Max S = " + max(a_L_ex*1000) + " mm")
+xlabel("Crank Angle (deg)")
+ylabel("S (mm)")
+xlim tight
+ylim padded
+
+subplot(2, 2, 2)
+plot(the(1:length(V)), V)
+title("V vs. Crank Angle"," Max V = " + max(V) + " mm/s")
+xlabel("Crank Angle (deg)")
+ylabel("V (mm/s)")
+xlim tight
+ylim padded
+
+subplot(2, 2, 3)
+plot(the(1:length(A)), A)
+title("A vs. Crank Angle", "Max A = " + max(A) + " mm/s^2")
+xlabel("Crank Angle (deg)")
+ylabel("A (mm/s^2)")
+xlim tight
+ylim padded
+
+subplot(2,2,4)
+plot(the(1:length(J)), J)
+title("J vs. Crank Angle", "Max J = " + max(J) + " mm/s^3")
+xlabel("Crank Angle (deg)")
+ylabel("J (mm/s^3)")
+xlim tight
+ylim padded
+
+figure(10)
 subplot(1, 2, 1)
 plot(the, A_in(the)*1000000)
 title("Minimum Intake Flow Area vs. Crank Angle")
 xlabel("Crank Angle (deg)")
 ylabel("Flow Area (mm^2)")
-xlim([-360 360])
+xlim tight
 xline(phi_in_1(1))
 xline(phi_in_1(end))
 xline(phi_in_2(1)) 
@@ -480,7 +522,7 @@ plot(the, A_ex(the)*1000000)
 title("Minimum Exhaust Flow Area vs. Crank Angle")
 xlabel("Crank Angle (deg)")
 ylabel("Flow Area (mm^2)")
-xlim([-360 360])
+xlim tight
 xline(phi_ex_1(1))
 xline(phi_ex_1(end))
 xline(phi_ex_2(1)) 
