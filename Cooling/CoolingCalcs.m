@@ -72,13 +72,13 @@ for i = 1:length(a_rpm)
 %     Nu_gas = 10.4*(Re_gas^(3/4));                       % p288 C. F. Taylor ("The Internal Combustion Engine in Theory and Practice", MIT Press, 1985)
     
     if Re_gas < 2000
-        f = 64/Re_gas;                      % Poiseuille’s law
+        f_block = 64/Re_gas;                      % Poiseuille’s law
     else 
 %       f = (0.790*log(Re_gas) - 1.64)^-2;          % Petukhov's correlation
 %       f = (1.8*log10((eps/b)/3.7)^1.11 + 6.9/Re_gas)^-2;
-        f = 0.25/(log10((eps/b)/3.7 + 5.74/Re_gas^0.9))^2;
+        f_block = 0.25/(log10((eps/b)/3.7 + 5.74/Re_gas^0.9))^2;
     end
-    Nu_gas = ((f/8)*(Re_gas-1000)*Pr_gas)/(1 + 12.7*(f/8)^(0.5)*(Pr_gas^(2/3) -1));
+    Nu_gas = ((f_block/8)*(Re_gas-1000)*Pr_gas)/(1 + 12.7*(f_block/8)^(0.5)*(Pr_gas^(2/3) -1));
     
     h_gas = (Nu_gas*k_gas)/b;
     A_char = 4*pi/4*b^2;
@@ -147,15 +147,15 @@ if read == 0
 %           f = double(solve(colebrook_white, f));
 
             if Re_cool < 2000
-                f = 64/Re_cool;                                 % Poiseuille’s law
+                f_block = 64/Re_cool;                                 % Poiseuille’s law
 %               f = (0.790*log(Re_cool) - 1.64)^-2;             % Petukhov's correlation
             else 
 %               f = (100*Re_cool)^(-0.25);                           % Darcy Friction Factor, Blasius Equation
 %               f = (0.790*log(Re_cool) - 1.64)^-2;             % Petukhov's correlation
 %               f = (1.8*log10((eps/L_cool)/3.7)^1.11 + 6.9/Re_cool)^-2;
-                f = 0.25/(log10((eps/L_cool)/3.7 + 5.74/Re_cool^0.9))^2;
+                f_block = 0.25/(log10((eps/L_cool)/3.7 + 5.74/Re_cool^0.9))^2;
             end
-            Nu_cool = ((f/8)*(Re_cool-1000)*Pr_cool)/(1 + 12.7*(f/8)^(0.5)*(Pr_cool^(2/3) -1));
+            Nu_cool = ((f_block/8)*(Re_cool-1000)*Pr_cool)/(1 + 12.7*(f_block/8)^(0.5)*(Pr_cool^(2/3) -1));
 
             h_cool = (Nu_cool*k_cool)/L_cool;
             R_tot = 1/(1/a_R_gas(k) + 1/R_jacket + 1/R_block_1 + 1/(h_cool*A_wall));
@@ -193,9 +193,9 @@ title("Coolant Mass Flow Rate vs. Engine Speed")
 xlabel("Engine Speed (rpm)")
 ylabel("Coolant Mass Flow Rate (kg/s)")
 
-vfr_cool = a_V_cool.*A_cool;
+vfr_cool = a_V_cool.*A_cool .* 1000 .* 60;
 subplot(1, 2, 2)
-plot(a_rpm, vfr_cool .* 1000 .* 60, 'LineWidth', 2)
+plot(a_rpm, vfr_cool, 'LineWidth', 2)
 xlim padded
 ylim padded
 title("Coolant Volumetric Flow Rate vs. Engine Speed")
@@ -204,10 +204,141 @@ ylabel("Coolant Volumetric Flow Rate (L/min)")
 
 %% Radiator Modeling
 
-cp_cool = 3.718;                       % kj/kgK Average cp over reasonable temperature range (https://corecheminc.com/ethylene-glycol-water-mixture-properties/#:~:text=1.084-,Specific%20Heat%C2%A0,-Specific%20Heat%2C%20or)
-Q_cool_max = max(a_Q_cool);
+cp_cool = 3.718*1000;                                   % J/kgK, Average cp over reasonable temperature range (https://corecheminc.com/ethylene-glycol-water-mixture-properties/#:~:text=1.084-,Specific%20Heat%C2%A0,-Specific%20Heat%2C%20or)
+Q_cool_max = max(a_Q_cool);                             % W
 mfr_cool_max = max(mfr_cool);
-deltaT = Q_cool_max/(mfr_cool_max*cp_cool*1000)
+deltaT = Q_cool_max/(mfr_cool_max*cp_cool);
+T_cool_out = deltaT + T_cool_in;
+
+T_air_in = 20+273.15;                                   % K
+P_air = 101.325;                                     % kPa
+D_air = refpropm('D','T',T_air_in,'P',P_air,air);    % kg/m^3, Density
+cp_air = refpropm('C','T',T_air_in,'P',P_air,air);   % J/kgK, Specific Heat
+
+A_rad_ratio = 4/5;
+L_rad = 400e-3;                                         % m
+H_rad = L_rad*A_rad_ratio;                              % m
+A_rad = L_rad*H_rad;                                    % m^2
+
+V_air = 20;                                             % m/s
+
+mfr_air = D_air*V_air*A_rad;                            % kg/s
+T_air_out = Q_cool_max/(mfr_air*cp_air) + T_air_in;
+
+T_air_mean = (T_air_in+T_air_out)/2;
+D_air = refpropm('D','T',T_air_mean,'P',P_air,air);    % kg/m^3, Density
+cp_air = refpropm('C','T',T_air_mean,'P',P_air,air);   % J/kgK, Specific Heat
+Pr_air = refpropm('^','T',T_air_mean,'P',P_air,air);   % Prandtl #
+k_air = refpropm('L','T',T_air_mean,'P',P_air,air);          % Thermal Conductivity, W/mK
+mu_air = refpropm('V','T',T_air_mean,'P',P_air,air);         % Dynamic Viscosity
+
+T_lm = ((T_cool_out-T_air_out)-(T_cool_in-T_air_in))/log((T_cool_out-T_air_out)/(T_cool_in-T_air_in));
+P = (T_cool_out-T_cool_in)/(T_air_in-T_cool_in);
+R = (T_air_in-T_air_out)/(T_cool_out-T_cool_in);
+F = 0.9;                                             % Figure 11S.4, pW-42 Fund. of Heat Transfer
+T_lm = F*T_lm;
+UA = Q_cool_max/T_lm;                                 % W/m^2*K
+
+% Fin Resistance Calculations
+w_fin = 30e-3;
+l_fin = L_rad;
+t_fin = 0.1e-3;
+charL_fin = w_fin + 0.5*t_fin;
+P_fin = 2*l_fin + 2*t_fin;
+k_fin = 237;                                           % W/mK
+N_fin = floor(H_rad/(2*t_fin));
+A_fin = w_fin*l_fin;
+A_tot_fin = N_fin*A_fin;
+
+Re_air = D_air*V_air*charL_fin/mu_air;
+% Using flat plate correlations for Nusselt number
+if Re_air < 5e5
+    Nu_air = 0.664*(Re_air^(1/2))*(Pr_air^(1/3));
+else
+    A = 0.037*(5e5)^(4/5) - 0.664*(5e5)^(1/2);
+    Nu_air = 0.037*(Re_air^(4/5) - A)*(Pr_air^(1/3));
+end
+h_fin = (Nu_air*k_air)/w_fin;
+
+m_fin = sqrt((2*h_fin)/(k_fin*t_fin));
+eta_fin = tanh(m_fin*charL_fin)/(m_fin*charL_fin);
+eta_o = 1 - (A_fin/A_tot_fin)*(1 - eta_fin);
+R_fin = 1/(eta_o*h_fin*A_tot_fin);
+
+% Coolant Flow Resistance Calculation
+Pr_cool = 7.5;                                      % McCabe and Smith, 1976.
+D_pipe = 15e-3;
+A_pipe = pi/4 * D_pipe^2;
+V_cool = mfr_cool_max/(D_cool*A_pipe);
+Re_cool = D_cool*V_cool*D_pipe/mu_cool;
+if Re_cool < 2300
+    Nu_cool = 4.36                         % Constant Surface Heat flux
+else
+    Nu_cool = 0.023*Re_cool^(4/5)*Pr_cool^(0.4);
+end
+h_cool = (Nu_cool*k_cool)/D_pipe;
+L_pipe = 9*L_rad;
+A_pipe_total = L_pipe*pi*D_pipe;
+R_cool = 1/(eta_o*h_cool*A_pipe_total);
+
+R_wall = 0;
+
+R_tot = R_fin + R_wall + R_cool;
+UA_check = 1/R_tot;
+
+%% Pressure Drop
+
+% Assume coolant density is constant across temperature range,
+% incompressible
+g = 9.81;
+
+cool_P_res = 101.325;                       % kPa
+cool_T_res = 30+273.15;                     % K
+
+if Re_cool < 2300
+    f_rad = 64/Re_cool
+else
+    f_rad = (1.8*log10(Re_cool/6.9))^-2;
+end
+
+D_char_rad = 4*A_pipe/(D_pipe*pi);
+Ploss_rad = f_rad * (L_pipe/D_char_rad) * (V_cool^2)/2 * D_cool;
+
+V_block = max(a_V_cool);
+Re_block = D_cool*V_block*L_cool/mu_cool;
+
+if Re_cool < 2000
+    f_block = 64/Re_cool
+else
+    f_block = 0.25/(log10((eps/L_cool)/3.7 + 5.74/Re_cool^0.9))^2;
+end
+
+L_block = 2*4*b*1.1;
+D_char_block = L_cool;
+Ploss_block = f_block * (L_block/D_char_block) * (V_block^2)/2 * D_cool;
+
+K_180 = 0.41;
+K_90 = 0.50;
+K_exit = 1;
+K_ent = 0.5;
+
+Ploss_minor_rad = 1/2 * D_cool * V_cool * (8*K_180 + 2*K_90);
+Ploss_minor_block = 1/2 * D_cool * V_block * (4*K_90+K_exit+K_ent);
+
+P_tot = Ploss_rad + Ploss_block + Ploss_minor_rad + Ploss_minor_block;
+P_tot = P_tot/1000                     % kPa
+max_vfr_cool = max(vfr_cool);
+max_vfr_cool*0.26417287472922
+T_cool_out-273.15
+T_cool_in-273.15
+
+close all
+
+
+
+
+
+
 
 function Q_air = air_cooling(V_air, b, s, T_suf)
     A_block = b*s;                                      % m^2
@@ -221,7 +352,7 @@ function Q_air = air_cooling(V_air, b, s, T_suf)
     L_air = 4*b*1.2;                                 % Characteristic Length (Block Length)
     Re_air = D_air*V_air*L_air/mu_air;
     % Using flat plate correlations for Nusselt number
-    if Re_air > 5e5
+    if Re_air < 5e5
         Nu_air = 0.664*(Re_air^(1/2))*(Pr_air^(1/3));
         %Nu_air = 0.453*(Re_air^(1/2))*(Pr_air^(1/3));
     else
