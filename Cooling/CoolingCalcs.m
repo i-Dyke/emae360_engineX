@@ -115,7 +115,7 @@ ylabel("Heat to Dissipate (kW)")
 % xlabel("Vehicle Speed (m/s)")
 % ylabel("Heat to Dissipate (W)")
 
-%% Coolent Calculations
+%% Coolant Calculations
 D_cool = 1055;                                      % kg/m^3, relatively insensitive to temp (https://corecheminc.com/ethylene-glycol-water-mixture-properties/#:~:text=Ethylene%20Glycol%20is%20completely%20miscible,is%20known%20as%20burst%20point.)
 k_cool = 0.40;                                      % W/mK, Stone p493
 mu_cool = 0.001;                                    % Dynamic Viscosity, worser case
@@ -277,7 +277,7 @@ else
     Nu_cool = 0.023*Re_cool^(4/5)*Pr_cool^(0.4);
 end
 h_cool = (Nu_cool*k_cool)/D_pipe;
-L_pipe = 9*L_rad;
+L_pipe = 12*H_rad;
 A_pipe_total = L_pipe*pi*D_pipe;
 R_cool = 1/(eta_o*h_cool*A_pipe_total);
 
@@ -291,9 +291,6 @@ UA_check = 1/R_tot;
 % Assume coolant density is constant across temperature range,
 % incompressible
 g = 9.81;
-
-cool_P_res = 101.325;                       % kPa
-cool_T_res = 30+273.15;                     % K
 
 if Re_cool < 2300
     f_rad = 64/Re_cool
@@ -331,9 +328,6 @@ max_vfr_cool = max(vfr_cool);
 max_vfr_cool*0.26417287472922
 T_cool_out-273.15
 T_cool_in-273.15
-
-close all
-
 
 
 
