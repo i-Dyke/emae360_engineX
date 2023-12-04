@@ -1,0 +1,48 @@
+---
+title: "EMAE360_R"
+author: "Ian"
+date: "2023-12-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(magrittr)
+```
+
+```{r Emissions}
+CO <- c(32.31470424, 19.38882255, 13.84915896, 10.77156808, 8.813101157, 7.457239441)
+NOx <- c(10.53362897, 6.320177379, 4.514412414, 3.511209655, 2.8728079, 2.430837454)
+km <- c(15, 25, 35, 45, 55, 65)
+max_NOx <- 0.8
+max_CO <- 12
+
+emissions <- data.frame(km, CO, NOx)
+
+emissions %<>% 
+  melt(id.vars = 'km')
+
+hlines <- data.frame(
+  yintercept = c(max_CO, max_NOx),
+  category = c("Max CO", "Max NOx"),
+  color = c('red','blue')
+)
+
+emissions %>% 
+  ggplot(aes(x = km, y = value)) +
+  geom_point(aes(color = variable)) +
+  geom_hline(data = hlines,
+             aes(yintercept = yintercept,
+                 color = category),
+             linetype = 'dashed', 
+             size = .5) + 
+  theme(legend.position = 'right') +
+  scale_color_manual(values = c('CO' = 'red', 'NOx' = 'blue',
+                                "Max CO" = 'red', "Max NOx" = 'blue'),
+                     name = "Legend") + 
+  theme_gray() +
+  labs(title = "Emissions of Carbon and Nitrogen Oxides",
+       x = "Km/Hr",
+       y = "grams/Km")
+```
