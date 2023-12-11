@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(magrittr)
+library(reshape2)
 ```
 
 ```{r Emissions}
@@ -29,6 +30,12 @@ hlines <- data.frame(
   color = c('red','blue')
 )
 
+emissions %<>%
+  filter(variable == "NOx") %>%
+  mutate(value = value * .05) %>%
+  mutate(variable = "Cat NOx") %>%
+  bind_rows(emissions, .)
+
 emissions %>% 
   ggplot(aes(x = km, y = value)) +
   geom_point(aes(color = variable)) +
@@ -36,9 +43,10 @@ emissions %>%
              aes(yintercept = yintercept,
                  color = category),
              linetype = 'dashed', 
-             size = .5) + 
+             linewidth = .5) + 
   theme(legend.position = 'right') +
-  scale_color_manual(values = c('CO' = 'red', 'NOx' = 'blue',
+  scale_color_manual(values = c('CO' = 'red', 'NOx' = 'blue', 
+                                "Cat NOx" = 'purple',
                                 "Max CO" = 'red', "Max NOx" = 'blue'),
                      name = "Legend") + 
   theme_gray() +
