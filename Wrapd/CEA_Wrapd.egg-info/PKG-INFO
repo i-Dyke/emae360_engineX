@@ -1,12 +1,18 @@
 Metadata-Version: 2.1
-Name: CEA-Wrapd
+Name: CEA_Wrapd
 Version: 1.6.1
 Summary: A Python-Based wrapper for the NASA CEA Thermochemical Code
 Home-page: https://github.com/civilwargeeky/CEA_Wrap
 Author: Daniel Klinger
 Author-email: klingerd@purdue.edu
 License: GNU GPL
-Requires: appdirs
+Requires: a
+Requires: p
+Requires: p
+Requires: d
+Requires: i
+Requires: r
+Requires: s
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown
 License-File: LICENSE

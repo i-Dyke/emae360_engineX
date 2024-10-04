@@ -1,5 +1,5 @@
 import copy as c 
-import CEA_Wrapd as cea
+import CEA_Wrap as cea
 
 class ThermoState: 
     def __init__(self, pressure_kPa:float, temperature_K:float, density_kgm3:float, volume_m3:float):
